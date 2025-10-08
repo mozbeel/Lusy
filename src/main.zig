@@ -1,27 +1,21 @@
 const std = @import("std");
-const Lusy = @import("Lusy");
+const lusy = @import("lusy");
+
+const Lusy = lusy.Lusy;
 
 pub fn main() !void {
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-    try Lusy.bufferedPrint();
-}
+    const allocator = std.heap.page_allocator;
 
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
+    const raw_args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, raw_args);
 
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
+    var args = try allocator.alloc([]const u8, raw_args.len);
+    defer allocator.free(args);
+
+    for (raw_args, 0..) |a, i| {
+        args[i] = std.mem.sliceTo(a, 0); // remove null terminator
+    }
+
+    var instance = Lusy.new(args);
+    instance.run();
 }
