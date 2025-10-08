@@ -17,5 +17,5 @@ pub fn main() !void {
     }
 
     var instance = Lusy.new(args);
-    instance.run();
+    try instance.run();
 }
