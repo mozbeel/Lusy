@@ -9,4 +9,4 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 .zig-cache/
-.zig-out/
+zig-out/
