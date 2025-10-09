@@ -28,7 +28,7 @@ Lusy is a typed, readable, beginner-friendly dialect of Lua, designed to help pr
 
 ### Types
 
-```lusy
+```teal
 local health: integer = 100
 local name: string = "Alice"
 
