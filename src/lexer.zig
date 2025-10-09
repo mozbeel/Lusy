@@ -84,6 +84,7 @@ pub const Lexer = struct {
         self.skipWhitespace();
 
         var shouldReadChar = true;
+        var shouldAppend = true;
 
         switch (self.ch) {
             '+' => tok = .{ .type = .Plus, .literal = self.content[self.position..self.read_position] },
@@ -93,7 +94,10 @@ pub const Lexer = struct {
             '(' => tok = .{ .type = .LParen, .literal = self.content[self.position..self.read_position] },
             ')' => tok = .{ .type = .RParen, .literal = self.content[self.position..self.read_position] },
             '%' => tok = .{ .type = .Modulus, .literal = self.content[self.position..self.read_position] },
-            0 => tok = .{ .type = .Eof, .literal = "" },
+            0 => {
+                tok = .{ .type = .Eof, .literal = "" };
+                shouldAppend = false;
+            },
             else => {
                 if (std.ascii.isDigit(self.ch)) {
                     // If it's a digit, read the whole number and return immediately
@@ -107,9 +111,11 @@ pub const Lexer = struct {
             },
         }
 
-        self.tokens.append(allocator, tok) catch {
-            std.debug.print("Couldn't append token (internal error)!\n", .{});
-        };
+        if (shouldAppend) {
+            self.tokens.append(allocator, tok) catch {
+                std.debug.print("Couldn't append token (internal error)!\n", .{});
+            };
+        }
 
         if (shouldReadChar) self.readChar();
         return tok;
@@ -137,7 +143,7 @@ pub const Lexer = struct {
     }
 
     /// The run method now loops through the input and prints all tokens.
-    pub fn run(self: *Lexer) void {
+    pub fn run(self: *Lexer) !void {
         std.debug.print("--- Tokens ---\n", .{});
         var token = self.nextToken();
         while (token.type != .Eof) {

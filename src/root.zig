@@ -20,9 +20,10 @@ pub const Lusy = struct {
 
         var lexer = try Lexer.new(self.args[1]);
         defer lexer.deinit();
-        lexer.run();
+        try lexer.run();
 
         var parser = try Parser.new(lexer.tokens.items);
-        parser.run();
+        defer parser.deinit();
+        try parser.run();
     }
 };
