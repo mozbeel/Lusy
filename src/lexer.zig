@@ -13,6 +13,7 @@ pub const TokenType = enum {
     Minus, // -
     Star, // *
     Slash, // /
+    Modulus, // %
 
     // Delimiters
     LParen, // (
@@ -30,6 +31,7 @@ pub const Lexer = struct {
     position: usize, // current position in input (points to current char)
     read_position: usize, // current reading position (after current char)
     ch: u8, // current char under examination
+    tokens: std.ArrayList(Token),
 
     const allocator = std.heap.page_allocator;
 
@@ -40,6 +42,7 @@ pub const Lexer = struct {
             .position = 0,
             .read_position = 0,
             .ch = 0,
+            .tokens = try std.ArrayList(Token).initCapacity(allocator, 250),
         };
         // Prime the lexer by reading the first character
         l.readChar();
@@ -80,6 +83,8 @@ pub const Lexer = struct {
 
         self.skipWhitespace();
 
+        var shouldReadChar = true;
+
         switch (self.ch) {
             '+' => tok = .{ .type = .Plus, .literal = self.content[self.position..self.read_position] },
             '-' => tok = .{ .type = .Minus, .literal = self.content[self.position..self.read_position] },
@@ -87,12 +92,14 @@ pub const Lexer = struct {
             '/' => tok = .{ .type = .Slash, .literal = self.content[self.position..self.read_position] },
             '(' => tok = .{ .type = .LParen, .literal = self.content[self.position..self.read_position] },
             ')' => tok = .{ .type = .RParen, .literal = self.content[self.position..self.read_position] },
+            '%' => tok = .{ .type = .Modulus, .literal = self.content[self.position..self.read_position] },
             0 => tok = .{ .type = .Eof, .literal = "" },
             else => {
                 if (std.ascii.isDigit(self.ch)) {
                     // If it's a digit, read the whole number and return immediately
                     const literal = self.readNumber();
-                    return .{ .type = .Number, .literal = literal };
+                    tok = .{ .type = .Number, .literal = literal };
+                    shouldReadChar = false;
                 } else {
                     // If we don't recognize the character, it's an Illegal token
                     tok = .{ .type = .Illegal, .literal = self.content[self.position..self.read_position] };
@@ -100,7 +107,11 @@ pub const Lexer = struct {
             },
         }
 
-        self.readChar();
+        self.tokens.append(allocator, tok) catch {
+            std.debug.print("Couldn't append token (internal error)!\n", .{});
+        };
+
+        if (shouldReadChar) self.readChar();
         return tok;
     }
 
@@ -130,9 +141,13 @@ pub const Lexer = struct {
         std.debug.print("--- Tokens ---\n", .{});
         var token = self.nextToken();
         while (token.type != .Eof) {
-            std.debug.print("{any}", .{token});
+            std.debug.print(".{{ .type = {any}, .literal = {s} }} \n", .{ token.type, token.literal });
             token = self.nextToken();
         }
         std.debug.print("--------------\n", .{});
+    }
+
+    pub fn deinit(self: *Lexer) void {
+        self.tokens.deinit(allocator);
     }
 };

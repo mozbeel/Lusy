@@ -1,6 +1,7 @@
 //! By convention, root.zig is the root source file when making a library.
 const std = @import("std");
 const Lexer = @import("lexer.zig").Lexer;
+const Parser = @import("parser.zig").Parser;
 
 pub const Lusy = struct {
     args: [][]const u8 = undefined,
@@ -18,6 +19,10 @@ pub const Lusy = struct {
         }
 
         var lexer = try Lexer.new(self.args[1]);
+        defer lexer.deinit();
         lexer.run();
+
+        var parser = try Parser.new(lexer.tokens.items);
+        parser.run();
     }
 };
