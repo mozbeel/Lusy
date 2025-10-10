@@ -7,6 +7,13 @@ pub const TokenType = enum {
 
     // Literals
     Number, // 12345
+    Literal, // var
+    String, // "var"
+
+    True, // true
+    False, // false
+
+    Nil,
 
     // Operators
     Plus, // +
@@ -15,9 +22,62 @@ pub const TokenType = enum {
     Slash, // /
     Modulus, // %
 
+    Assign, // =
+
+    Eq, // ==
+    Neq, // ~=
+    SmallerThan, // <
+    SmallerThanEqual, // <=
+    GreaterThan, // >
+    GreaterThanEqual, // >=
+
+    Concat, // ..
+    Pow, // ^
+    Length, // #
+
+    And, // and
+    Or, // or
+    Not, // not
+
     // Delimiters
     LParen, // (
     RParen, // )
+
+    LBrace, // {
+    RBrace, // }
+
+    LBracket, // [
+    RBracket, // ]
+
+    Comma, // ,
+
+    Dot, // .
+    Colon, // :
+    SemiColon, // ;
+    DoubleColon, // :: for labels (::label::)
+
+    // Keywords
+    Local, // local
+    Global, // global
+
+    Function, // function
+    Return, // return
+
+    If,
+    Then,
+    Else,
+    ElseIf,
+
+    For,
+    In,
+    While,
+    Repeat,
+    Until,
+    Break,
+
+    Do,
+
+    End,
 };
 
 /// Token represents a single unit of code. It has a type and a literal value.
